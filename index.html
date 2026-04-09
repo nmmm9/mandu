@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,6 +23,24 @@
       justify-content: center;
       font-family: 'Segoe UI', sans-serif;
       user-select: none;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: url('다운로드.jpg') no-repeat center center;
+      background-size: 60%;
+      opacity: 0.05;
+      image-rendering: pixelated;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body>* {
+      position: relative;
+      z-index: 1;
     }
 
     .emoji-top {
@@ -33,8 +52,15 @@
     }
 
     @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-15px); }
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-15px);
+      }
     }
 
     .question {
@@ -44,7 +70,7 @@
       text-align: center;
       margin-bottom: 50px;
       line-height: 1.5;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
     }
 
     .buttons {
@@ -81,9 +107,9 @@
       background: linear-gradient(135deg, #a4b0be, #747d8c);
       color: white;
       box-shadow: 0 8px 25px rgba(116, 125, 140, 0.4);
-      position: absolute;
+      position: fixed;
       transition: none;
-      z-index: 10;
+      z-index: 50;
     }
 
     /* Yes 결과 화면 */
@@ -104,8 +130,13 @@
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
     }
 
     .result-emoji {
@@ -116,8 +147,13 @@
     }
 
     @keyframes celebrate {
-      from { transform: scale(1) rotate(-5deg); }
-      to { transform: scale(1.15) rotate(5deg); }
+      from {
+        transform: scale(1) rotate(-5deg);
+      }
+
+      to {
+        transform: scale(1.15) rotate(5deg);
+      }
     }
 
     .result-text {
@@ -143,8 +179,15 @@
     }
 
     @keyframes floatUp {
-      0% { opacity: 1; transform: translateY(0) scale(1); }
-      100% { opacity: 0; transform: translateY(-400px) scale(0.3); }
+      0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translateY(-400px) scale(0.3);
+      }
     }
 
     /* no 버튼 도망칠 때 살짝 떠는 효과 */
@@ -153,9 +196,19 @@
     }
 
     @keyframes shake {
-      0%, 100% { transform: rotate(0deg); }
-      25% { transform: rotate(-8deg); }
-      75% { transform: rotate(8deg); }
+
+      0%,
+      100% {
+        transform: rotate(0deg);
+      }
+
+      25% {
+        transform: rotate(-8deg);
+      }
+
+      75% {
+        transform: rotate(8deg);
+      }
     }
 
     .escape-count {
@@ -163,10 +216,11 @@
       bottom: 20px;
       right: 20px;
       font-size: 14px;
-      color: rgba(0,0,0,0.3);
+      color: rgba(0, 0, 0, 0.3);
     }
   </style>
 </head>
+
 <body>
 
   <img class="emoji-top" src="수상한만두를마주친다면피하세요.gif" alt="캐릭터">
@@ -182,7 +236,7 @@
   <!-- Yes 결과 -->
   <div class="result-overlay" id="result">
     <img class="result-emoji" src="176708cfda49c63.gif" alt="결과">
-    <div class="result-text">감사합니다!!<br>두쫀쿠를 마음껏 만지겠습니다!!</div>
+    <div class="result-text">감사합니다!!<br>로션바르고 기다리세요</div>
   </div>
 
   <div class="hearts" id="hearts"></div>
@@ -191,6 +245,12 @@
     const noBtn = document.getElementById('noBtn');
     const counter = document.getElementById('counter');
     let escapeCount = 0;
+
+    // 초기 위치 설정
+    const yesBtn = document.querySelector('.btn-yes');
+    const yesRect = yesBtn.getBoundingClientRect();
+    noBtn.style.left = (yesRect.right + 40) + 'px';
+    noBtn.style.top = yesRect.top + 'px';
 
     const messages = [
       '아니요 싫습니다',
@@ -293,4 +353,5 @@
     }
   </script>
 </body>
+
 </html>
