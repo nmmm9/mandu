@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>허락하시겠습니까?</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: linear-gradient(135deg, #ffecd2, #fcb69f);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', sans-serif;
+      user-select: none;
+    }
+
+    .emoji-top {
+      width: 120px;
+      height: auto;
+      margin-bottom: 20px;
+      animation: bounce 1.5s ease-in-out infinite;
+      image-rendering: pixelated;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-15px); }
+    }
+
+    .question {
+      font-size: 28px;
+      font-weight: 700;
+      color: #333;
+      text-align: center;
+      margin-bottom: 50px;
+      line-height: 1.5;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .buttons {
+      display: flex;
+      gap: 40px;
+      align-items: center;
+    }
+
+    .btn-yes {
+      padding: 18px 60px;
+      font-size: 24px;
+      font-weight: 700;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+      color: white;
+      box-shadow: 0 8px 25px rgba(238, 90, 36, 0.4);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-yes:hover {
+      transform: scale(1.1);
+      box-shadow: 0 12px 35px rgba(238, 90, 36, 0.6);
+    }
+
+    .btn-no {
+      padding: 18px 60px;
+      font-size: 24px;
+      font-weight: 700;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #a4b0be, #747d8c);
+      color: white;
+      box-shadow: 0 8px 25px rgba(116, 125, 140, 0.4);
+      position: absolute;
+      transition: none;
+      z-index: 10;
+    }
+
+    /* Yes 결과 화면 */
+    .result-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, #ff9a9e, #fad0c4, #ffecd2);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .result-overlay.show {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .result-emoji {
+      width: 250px;
+      height: auto;
+      border-radius: 16px;
+      animation: celebrate 0.6s ease-in-out infinite alternate;
+    }
+
+    @keyframes celebrate {
+      from { transform: scale(1) rotate(-5deg); }
+      to { transform: scale(1.15) rotate(5deg); }
+    }
+
+    .result-text {
+      font-size: 36px;
+      font-weight: 800;
+      color: #e55039;
+      margin-top: 30px;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .hearts {
+      position: fixed;
+      pointer-events: none;
+      z-index: 101;
+    }
+
+    .heart {
+      position: fixed;
+      font-size: 30px;
+      animation: floatUp 3s ease-out forwards;
+      pointer-events: none;
+    }
+
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-400px) scale(0.3); }
+    }
+
+    /* no 버튼 도망칠 때 살짝 떠는 효과 */
+    .btn-no.shaking {
+      animation: shake 0.15s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(-8deg); }
+      75% { transform: rotate(8deg); }
+    }
+
+    .escape-count {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      font-size: 14px;
+      color: rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <img class="emoji-top" src="수상한만두를마주친다면피하세요.gif" alt="캐릭터">
+  <div class="question">자신의 두쫀쿠를<br>만지게 하는것을 허락하시겠습니까??</div>
+
+  <div class="buttons">
+    <button class="btn-yes" onclick="sayYes()">네 허락합니다</button>
+    <button class="btn-no" id="noBtn">아니요 싫습니다</button>
+  </div>
+
+  <div class="escape-count" id="counter"></div>
+
+  <!-- Yes 결과 -->
+  <div class="result-overlay" id="result">
+    <img class="result-emoji" src="176708cfda49c63.gif" alt="결과">
+    <div class="result-text">감사합니다!!<br>두쫀쿠를 마음껏 만지겠습니다!!</div>
+  </div>
+
+  <div class="hearts" id="hearts"></div>
+
+  <script>
+    const noBtn = document.getElementById('noBtn');
+    const counter = document.getElementById('counter');
+    let escapeCount = 0;
+
+    const messages = [
+      '아니요 싫습니다',
+      '안된다니까요',
+      '그냥 네 누르세요',
+      '진짜 안돼요',
+      '아직도 포기 안했어?',
+      '이걸 계속 해?',
+      '그만하고 네 눌러',
+      '... 아직도?',
+    ];
+
+    // 마우스가 가까이 오면 도망
+    document.addEventListener('mousemove', (e) => {
+      const rect = noBtn.getBoundingClientRect();
+      const btnCenterX = rect.left + rect.width / 2;
+      const btnCenterY = rect.top + rect.height / 2;
+
+      const dist = Math.hypot(e.clientX - btnCenterX, e.clientY - btnCenterY);
+      const escapeRadius = 150;
+
+      if (dist < escapeRadius) {
+        runAway();
+      }
+    });
+
+    // 모바일 터치 대응
+    noBtn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      runAway();
+    });
+
+    // 클릭도 막기
+    noBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      runAway();
+    });
+
+    function runAway() {
+      const padding = 20;
+      const maxX = window.innerWidth - noBtn.offsetWidth - padding;
+      const maxY = window.innerHeight - noBtn.offsetHeight - padding;
+
+      let newX, newY;
+      // 현재 위치에서 충분히 먼 곳으로 이동
+      const rect = noBtn.getBoundingClientRect();
+      do {
+        newX = Math.random() * maxX + padding;
+        newY = Math.random() * maxY + padding;
+      } while (Math.hypot(newX - rect.left, newY - rect.top) < 200);
+
+      noBtn.style.left = newX + 'px';
+      noBtn.style.top = newY + 'px';
+
+      // 텍스트 변경
+      escapeCount++;
+      noBtn.textContent = escapeCount <= messages.length
+        ? messages[escapeCount - 1]
+        : messages[Math.floor(Math.random() * messages.length)];
+
+      // 떠는 효과
+      noBtn.classList.remove('shaking');
+      void noBtn.offsetWidth;
+      noBtn.classList.add('shaking');
+
+      // 카운터
+      counter.textContent = `도망 횟수: ${escapeCount}`;
+
+      // 일정 횟수 이상이면 버튼 크기 줄이기
+      if (escapeCount > 5) {
+        const scale = Math.max(0.6, 1 - (escapeCount - 5) * 0.05);
+        noBtn.style.transform = `scale(${scale})`;
+      }
+    }
+
+    function sayYes() {
+      document.getElementById('result').classList.add('show');
+      spawnHearts();
+    }
+
+    function spawnHearts() {
+      const container = document.getElementById('hearts');
+      const emojis = ['❤️', '💕', '💖', '🩷', '🐾', '✨'];
+      let count = 0;
+
+      const interval = setInterval(() => {
+        const heart = document.createElement('div');
+        heart.className = 'heart';
+        heart.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        heart.style.left = Math.random() * window.innerWidth + 'px';
+        heart.style.top = window.innerHeight + 'px';
+        heart.style.fontSize = (20 + Math.random() * 30) + 'px';
+        container.appendChild(heart);
+
+        setTimeout(() => heart.remove(), 3000);
+
+        count++;
+        if (count > 50) clearInterval(interval);
+      }, 100);
+    }
+  </script>
+</body>
+</html>
